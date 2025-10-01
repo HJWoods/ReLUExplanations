@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 import numpy as np
 
-from main import ExplanationEngine, train_model, save_model, load_model
+from ExplanationEngine import ExplanationEngine, train_model, save_model, load_model
 
 def load_mnist_data(batch_size=64):
     """Load MNIST dataset with preprocessing."""
