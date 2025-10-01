@@ -3,10 +3,18 @@ Implementation of the algorithms described in "Causal Explanations from the Geom
 
 # QuickStart:
 ```
+# Init repository
 git clone https://github.com/HJWoods/ReLUExplanations
 cd ReLUExplanations
 
 # Optionally, create and source a virtual environment first
+python -m venv .venv
+# On Linux/MacOS:
+source .venv/bin/activate
+# On Windows:
+.venv/Scripts/activate
+
+# Install requirements and run
 pip install -r requirements.txt
 python mnist.py
 ```
