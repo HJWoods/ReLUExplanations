@@ -12,12 +12,14 @@ python mnist.py
 ```
 
 # Using your own models
+## Generating Engine
 ```
 from ExplanationEngine import ExplanationEngine
 
 engine = ExplanationEngine(model) # model : torch.nn.module, only linear and relu layers
-
+```
 # Why explanation
+```
 why_res = engine.why(x) # x: np.ndarray (network_input_d,)
 print("\nFirst few constraints from WHY explanation:")
 A = why_res.get("A")
@@ -27,8 +29,9 @@ if A is not None and b is not None:
         print(f"Constraint {i+1}: {np.array2string(A[i][:10], precision=2)}... <= {b[i]:.4f}")
     if len(A) > 5:
         print(f"... and {len(A) - 5} more constraints")
-
+```
 # Why not explanation
+```
 why_not_res = engine.why_not(x, counterfactual_class, max_visited=60000) # max polytopes to visit if marching necessary
 print("\n" + "="*50)
 print("WHY NOT EXPLANATION:")
