@@ -15,6 +15,14 @@ import os
 
 @dataclass
 class Polytope:
+    """
+    Class to represent a single polytope, as it's hyperplane (H) representation
+    where each constraint is of the form a1x1 + a2x2 + ... + anxn <= b.
+    A: np.ndarray, shape (n_constraints, n_features), such that each row of A forms the left-hand side of a constraint.
+    b: np.ndarray, shape (n_constraints,), such that each element of b forms the single constant on the right-hand side
+    of a constraint.
+    The polytope is the region in R^n_features that satisfies all of the inequalities simultaneously.
+    """
     A: np.ndarray
     b: np.ndarray
     def add_constraints(self, A_add: np.ndarray, b_add: np.ndarray) -> "Polytope":
@@ -31,6 +39,11 @@ class Polytope:
 
 @dataclass
 class ActivationSignature:
+    """
+    Class to represent the activation signature of a given input, as a list of boolean vectors.
+    s_per_layer: List[np.ndarray], such that each element of the list is a boolean vector of length n_features,
+    representing the activation pattern of the input through a given layer of the network.
+    """
     s_per_layer: List[np.ndarray]
     def to_flat(self) -> np.ndarray:
         return np.concatenate([s.astype(np.int8).ravel() for s in self.s_per_layer])
@@ -44,6 +57,11 @@ class ActivationSignature:
         return ActivationSignature(s_per_layer)
 
 class ReLUNetworkWrapper:
+    """
+    Class to wrap a PyTorch model, and extract the linear layers and hidden sizes.
+    Only supports networks consisting of linear layers followed by a ReLU, and a final
+    linear layer without an activation function.
+    """
     def __init__(self, model: nn.Module):
         self.model = model
         self.linears: List[nn.Linear] = []
@@ -60,6 +78,14 @@ class ReLUNetworkWrapper:
         if len(self.linears) < 1:
             raise ValueError("Model must contain at least one nn.Linear layer.")
     def forward_collect(self, x: torch.Tensor) -> Tuple[List[np.ndarray], List[np.ndarray]]:
+        """
+        Forward pass through the network, collecting the output and activation pattern of each layer.
+        Returns a tuple of two lists:
+        - z_list: List[np.ndarray], such that each element of the list is a numpy array of shape (n_samples, n_features)
+        with the output of a given layer of the network.
+        - s_list: List[np.ndarray], such that each element of the list is a boolean vector of length n_features,
+        representing the activation pattern of the input through a given layer of the network.
+        """
         self.model.eval()
         with torch.no_grad():
             a = x
