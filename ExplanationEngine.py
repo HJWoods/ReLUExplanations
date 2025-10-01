@@ -100,6 +100,9 @@ class ReLUNetworkWrapper:
             _ = self.linears[-1](a)
         return z_list, s_list
     def effective_affines(self, signature: ActivationSignature) -> Tuple[List[np.ndarray], List[np.ndarray]]:
+        """
+        Get the effective affines of the network given the activation signature.
+        """
         if len(signature.s_per_layer) != len(self.linears) - 1:
             raise ValueError("Signature length mismatch.")
         W1 = self.linears[0].weight.detach().cpu().numpy()
@@ -122,6 +125,10 @@ class ReLUNetworkWrapper:
         b_out_eff = W_out @ D_last @ b_prev + b_out
         return (A_list + [A_out]), (b_list + [b_out_eff])
     def polytope_from_signature(self, signature: ActivationSignature) -> Polytope:
+        """
+        Get the polytope in terms of input variables x from the activation signature, by multiplying weights
+        of each layer together given the activation signature.
+        """
         A_layers, b_layers = self.effective_affines(signature)
         A_hidden = A_layers[:-1]
         b_hidden = b_layers[:-1]
@@ -138,6 +145,10 @@ class ReLUNetworkWrapper:
             return Polytope(np.zeros((0, self.input_dim)), np.zeros((0,)))
         return Polytope(np.vstack(A_rows), np.concatenate(b_rows))
     def output_subset_polytope(self, signature: ActivationSignature, cls: int) -> Polytope:
+        """
+        Get the polytope in terms of input variables x from the activation signature, for the given class Polytope as a subset
+        of the output polytope.
+        """
         A_layers, b_layers = self.effective_affines(signature)
         A_out, b_out = A_layers[-1], b_layers[-1]
         C = A_out.shape[0]
@@ -152,6 +163,9 @@ class ReLUNetworkWrapper:
         return Polytope(np.vstack(A_rows), np.array(b_rows))
 
 def is_feasible(poly: Polytope) -> bool:
+    """
+    Check if the polytope is feasible. Using linprog
+    """
     if poly.A.size == 0:
         return True
     c = np.zeros(poly.A.shape[1])
@@ -159,10 +173,19 @@ def is_feasible(poly: Polytope) -> bool:
     return res.success
 
 class ExplanationEngine:
+    """
+    Main class. To use, simply wrap the model as ExplanationEngine(model).
+    The model must be a pytorch module with linear and relu layers only, where each linear
+    layer is followed by a ReLU activation function, except for the final layer.
+    """
     def __init__(self, model: nn.Module):
         self.net = ReLUNetworkWrapper(model)
         self.device = next(model.parameters()).device
     def why(self, x: np.ndarray) -> Dict[str, object]:
+        """
+        Generate a "Why" explanation for the given input. Simply passes the input through the network, collects the
+        activation signature and generates the corresponding polytope.
+        """
         x_t = torch.tensor(x, dtype=torch.float32).unsqueeze(0).to(self.device)
         _, s_list = self.net.forward_collect(x_t)
         signature = ActivationSignature([s[0] for s in s_list])
@@ -280,12 +303,18 @@ class ExplanationEngine:
         }
 
     def format_why_explanation(self, why_result: Dict[str, object]) -> str:
+        """
+        Prettyprint for the "Why" explanation.
+        """
         cls = why_result.get("class")
         A = why_result.get("A")
         b = why_result.get("b")
         constraints_str = [f"Constraint {i+1}: {np.array2string(ai, precision=4)}·x <= {bi:.4f}" for i, (ai, bi) in enumerate(zip(A, b))]
         return f"The input is classified as class {cls} because all of the following constraints are satisfied:\n" + "\n".join(constraints_str)
     def format_why_not_explanation(self, why_not_result: Dict[str, object]) -> str:
+        """
+        Prettyprint for the "Why not" explanation.
+        """
         actual = int(why_not_result.get("actual", -1))
         counter = int(why_not_result.get("counterfactual", -1))
         result_type = why_not_result.get("result")

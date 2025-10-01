@@ -34,20 +34,15 @@ def create_mnist_model(input_size=784, hidden_size=128, num_classes=10):
     return model
 
 if __name__ == "__main__":
-    # Configuration
     FORCE_RETRAIN = True  # Set to True to retrain even if model exists
     
-    # Load MNIST data
     print("Loading MNIST data...")
     train_loader, test_loader = load_mnist_data(batch_size=64)
-    
-    # Create model and move to device
     print("Creating MNIST model...")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = create_mnist_model(input_size=784, hidden_size=32, num_classes=10)
     model = model.to(device)
     
-    # Try to load existing model, train if not found or if force retrain is enabled
     model_file = 'mnist_model.pth'
     if FORCE_RETRAIN:
         print("Force retrain enabled - training new model...")
@@ -60,15 +55,12 @@ if __name__ == "__main__":
     else:
         print("Using pre-trained model.")
     
-    # Create explanation engine
     engine = ExplanationEngine(model)
     
-    # Get a test example
     print("\nGetting a test example...")
     test_iter = iter(test_loader)
     images, labels = next(test_iter)
     
-    # Use the first image as our example
     x = images[0].view(-1).numpy()  # Flatten to 1D array
     actual_label = labels[0].item()
     
@@ -89,13 +81,11 @@ if __name__ == "__main__":
     print(f"\nFinding why it's not classified as class {counterfactual_class}...")
     why_not_res = engine.why_not(x, counterfactual_cls=counterfactual_class, max_visited=60000)
     
-    # Print results
     print("\n" + "="*50)
     print("WHY NOT EXPLANATION:")
     print(engine.format_why_not_explanation(why_not_res))
     print("\n" + "="*50)
     
-    # Show some constraints from the WHY explanation (first few)
     print("\nFirst few constraints from WHY explanation:")
     A = why_res.get("A")
     b = why_res.get("b")
