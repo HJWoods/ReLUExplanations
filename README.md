@@ -12,7 +12,7 @@ python -m venv .venv
 # On Linux/MacOS:
 source .venv/bin/activate
 # On Windows:
-.venv/Scripts/activate
+.venv\Scripts\activate
 
 # Install requirements and run
 pip install -r requirements.txt
