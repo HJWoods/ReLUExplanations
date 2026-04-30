@@ -52,7 +52,7 @@ A "Why" explanation consists simply of the constraints of the polytope which con
 This will consist of n inequalities with d variables, where n is the number of neurons in the network and d the dimensionality of
 the input space.
 
-A "Why not" explanation can consist of a single inequality, or many, depending ont he case.
+A "Why not" explanation can consist of a single inequality, or many, depending on the case.
 In the case where the counterfactual can be found within the same polytope (CASE: SAME POLYTOPE), this will be a single
 inequality of d variables.
 
